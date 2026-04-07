@@ -1,0 +1,51 @@
+<div class="dashboard-container">
+  <h2>Registration Dashboard</h2>
+  <button type="button" class="signout-btn" (click)="signOut()">Sign Out</button>
+
+  <form>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="name" [(ngModel)]="name" />
+    </div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" name="username" [(ngModel)]="username" />
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" [(ngModel)]="email" />
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" [(ngModel)]="password" />
+    </div>
+
+    <div class="form-group">
+      <label>Address Line 1</label>
+      <input type="text" name="addressLine1" [(ngModel)]="addressLine1" />
+    </div>
+
+    <div class="form-group">
+      <label>Address Line 2</label>
+      <input type="text" name="addressLine2" [(ngModel)]="addressLine2" />
+    </div>
+
+    <div class="form-group">
+      <label>Zipcode</label>
+      <input type="text" name="zipcode" [(ngModel)]="zipcode" />
+    </div>
+
+    <div class="form-group">
+      <label>City</label>
+      <input type="text" name="city" [(ngModel)]="city" />
+    </div>
+
+    <div class="form-group">
+      <label>State</label>
+      <input type="text" name="state" [(ngModel)]="state" />
+    </div>
+  </form>
+</div>

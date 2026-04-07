@@ -1,0 +1,44 @@
+.dashboard-container {
+  width: 520px;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.signout-btn {
+  display: block;
+  margin-left: auto;
+  margin-bottom: 14px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  background: #1976d2;
+  color: #fff;
+  cursor: pointer;
+}
+
+.signout-btn:hover {
+  background: #125ea8;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}

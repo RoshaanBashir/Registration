@@ -1,0 +1,53 @@
+<div class="login-container">
+    <h2>Login</h2>
+  
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      
+      <div class="form-group">
+        <label>Email</label>
+        <input 
+          type="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          autocomplete="username"
+          required 
+          email
+          #emailCtrl="ngModel"
+        />
+        <small *ngIf="emailCtrl.invalid && emailCtrl.touched">
+          Enter a valid email
+        </small>
+      </div>
+  
+      <div class="form-group">
+        <label>Password</label>
+        <input 
+          type="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          autocomplete="current-password"
+          required
+          minlength="6"
+          #passwordCtrl="ngModel"
+        />
+        <small *ngIf="passwordCtrl.invalid && passwordCtrl.touched">
+          Password must be at least 6 characters
+        </small>
+      </div>
+  
+      <button type="submit" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <small *ngIf="successMessage" style="color: green; display: block; margin-top: 10px;">
+        {{ successMessage }}
+      </small>
+      <small *ngIf="errorMessage" style="color: #c62828; display: block; margin-top: 10px;">
+        {{ errorMessage }}
+      </small>
+      <small *ngIf="debugMessage" style="color: #666; display: block; margin-top: 8px;">
+        {{ debugMessage }}
+      </small>
+  
+    </form>
+  </div>
