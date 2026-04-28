@@ -4,18 +4,17 @@
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
       
       <div class="form-group">
-        <label>Email</label>
+        <label>Username</label>
         <input 
-          type="email" 
-          name="email" 
-          [(ngModel)]="email" 
+          type="text" 
+          name="username" 
+          [(ngModel)]="username" 
           autocomplete="username"
           required 
-          email
-          #emailCtrl="ngModel"
+          #usernameCtrl="ngModel"
         />
-        <small *ngIf="emailCtrl.invalid && emailCtrl.touched">
-          Enter a valid email
+        <small *ngIf="usernameCtrl.invalid && usernameCtrl.touched">
+          Username is required
         </small>
       </div>
   

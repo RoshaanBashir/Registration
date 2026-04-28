@@ -3,13 +3,20 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 import { timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 type LoginResponse = {
   token?: string;
+  jwtToken?: string;
+  accessToken?: string;
   message?: string;
+};
+
+type LoginPayload = {
+  username?: string;
+  email?: string;
+  password: string;
 };
 
 @Component({
@@ -20,7 +27,7 @@ type LoginResponse = {
   styleUrls: ['./login.css']
 })
 export class Login {
-  email: string = '';
+  username: string = '';
   password: string = '';
   isLoading: boolean = false;
   errorMessage: string = '';
@@ -40,21 +47,28 @@ export class Login {
     this.debugMessage = '';
     this.isLoading = true;
 
-    const payload = {
-      username: this.email,
-      email: this.email,
-      password: this.password
-    };
+    const normalizedUser = this.username.trim();
+    const payloadCandidates: LoginPayload[] = [
+      { username: normalizedUser, password: this.password },
+      { email: normalizedUser, password: this.password },
+      { username: normalizedUser, email: normalizedUser, password: this.password }
+    ];
 
+    this.tryLogin(payloadCandidates, 0);
+  }
+
+  private tryLogin(payloadCandidates: LoginPayload[], index: number): void {
     this.http
-      .post<LoginResponse>(this.loginApiUrl, payload)
-      .pipe(
-        timeout(10000),
-        finalize(() => (this.isLoading = false))
-      )
+      .post<LoginResponse>(this.loginApiUrl, payloadCandidates[index])
+      .pipe(timeout(10000))
       .subscribe({
         next: (response) => {
-          const token = response?.token ?? '';
+          this.isLoading = false;
+          const token =
+            response?.token ??
+            response?.jwtToken ??
+            response?.accessToken ??
+            '';
           if (token) {
             localStorage.setItem('authToken', token);
           }
@@ -62,10 +76,20 @@ export class Login {
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
+          const canRetryWithAnotherPayload =
+            index < payloadCandidates.length - 1 &&
+            (error?.status === 400 || error?.status === 500 || error?.status === 415 || error?.status === 422);
+
+          if (canRetryWithAnotherPayload) {
+            this.tryLogin(payloadCandidates, index + 1);
+            return;
+          }
+
+          this.isLoading = false;
           console.error('Login API error:', error);
           const status = error?.status ? ` (HTTP ${error.status})` : '';
-          const rawError =
-            typeof error?.error === 'string' ? error.error : '';
+          const rawError = typeof error?.error === 'string' ? error.error : '';
+          const errorBlob = JSON.stringify(error?.error ?? '').toLowerCase();
           const backendMessage =
             error?.error?.message ||
             error?.error?.title ||
@@ -81,7 +105,24 @@ export class Login {
               'Login request timed out after 10s. Check if API is reachable.';
           } else if (error?.status === 0) {
             this.errorMessage =
-              'Cannot reach API (status 0). Confirm API is running and proxy target/HTTPS port is correct.';
+              'Cannot reach API (status 0). Confirm API is running and the dev proxy target is correct.';
+          } else if (
+            (error?.status === 500 || error?.status === 502 || error?.status === 503) &&
+            (rawError.toLowerCase().includes('econnrefused') ||
+              rawError.toLowerCase().includes('connection refused') ||
+              rawError.toLowerCase().includes('actively refused') ||
+              rawError.toLowerCase().includes('proxy error') ||
+              errorBlob.includes('econnrefused') ||
+              errorBlob.includes('connection refused') ||
+              errorBlob.includes('actively refused') ||
+              errorBlob.includes('proxy error') ||
+              errorBlob.includes('localhost:5230'))
+          ) {
+            this.errorMessage =
+              'Backend API is not running on http://localhost:5230. Start backend first, then retry login.';
+          } else if (error?.status === 500 && !backendMessage) {
+            this.errorMessage =
+              'Server error during login (HTTP 500). Check backend logs for /api/auth/login.';
           }
 
           this.debugMessage = `POST ${this.loginApiUrl}`;

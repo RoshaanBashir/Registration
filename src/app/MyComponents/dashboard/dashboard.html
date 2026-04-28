@@ -1,51 +1,122 @@
-<div class="dashboard-container">
-  <h2>Registration Dashboard</h2>
-  <button type="button" class="signout-btn" (click)="signOut()">Sign Out</button>
+<div class="dashboard-root">
+  <div class="toast" [class.toast--visible]="toastMessage" [class.toast--error]="toastType === 'error'">
+    {{ toastMessage }}
+  </div>
 
-  <form>
-    <div class="form-group">
-      <label>Name</label>
-      <input type="text" name="name" [(ngModel)]="name" />
+  <header class="dashboard-header">
+    <div>
+      <h1>Registration Dashboard</h1>
+      <p>{{ forms.length }} form{{ forms.length === 1 ? '' : 's' }} · {{ savedFormsCount }} saved</p>
+      <p class="sync-meta">
+        <span class="sync-pill" [class.sync-pill--active]="isSyncing">{{ isSyncing ? 'Syncing...' : 'Live sync on' }}</span>
+        <span *ngIf="lastSyncedAt">Last sync: {{ lastSyncedAt }}</span>
+      </p>
     </div>
+    <div class="header-actions">
+      <button type="button" class="secondary-btn" (click)="addForm()">Add Form</button>
+      <button type="button" class="danger-btn" (click)="signOut()">Sign Out</button>
+    </div>
+  </header>
 
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" name="username" [(ngModel)]="username" />
-    </div>
+  <section class="forms-grid">
+    <article class="reg-card" *ngFor="let form of forms; let i = index" [class.reg-card--saved]="form.isSaved">
+      <div class="card-top">
+        <input
+          class="title-input"
+          [name]="'title-' + form.id"
+          [(ngModel)]="form.title"
+          (ngModelChange)="onFormChange(i)"
+          maxlength="50"
+        />
+        <div class="card-actions">
+          <button type="button" class="icon-btn" [disabled]="form.isSubmitting" (click)="clearForm(i)">Clear</button>
+          <button
+            type="button"
+            class="icon-btn icon-btn--danger"
+            [disabled]="form.isSubmitting"
+            (click)="deleteFromDatabase(i)">
+            Delete DB
+          </button>
+          <button type="button" class="icon-btn icon-btn--danger" [disabled]="form.isSubmitting" (click)="removeForm(i)">Remove</button>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" name="email" [(ngModel)]="email" />
-    </div>
+      <form class="reg-form" (ngSubmit)="saveForm(i)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input [name]="'name-' + form.id" [(ngModel)]="form.name" (ngModelChange)="onFormChange(i)" />
+          </div>
+          <div class="form-group">
+            <label>Username *</label>
+            <input [name]="'username-' + form.id" [(ngModel)]="form.username" (ngModelChange)="onFormChange(i)" />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" name="password" [(ngModel)]="password" />
-    </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [name]="'email-' + form.id" [(ngModel)]="form.email" (ngModelChange)="onFormChange(i)" />
+          </div>
+          <div class="form-group">
+            <label>Password *</label>
+            <input type="password" [name]="'password-' + form.id" [(ngModel)]="form.password" (ngModelChange)="onFormChange(i)" />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>Address Line 1</label>
-      <input type="text" name="addressLine1" [(ngModel)]="addressLine1" />
-    </div>
+        <div class="form-group">
+          <label>Address Line 1 *</label>
+          <input [name]="'address1-' + form.id" [(ngModel)]="form.addressLine1" (ngModelChange)="onFormChange(i)" />
+        </div>
 
-    <div class="form-group">
-      <label>Address Line 2</label>
-      <input type="text" name="addressLine2" [(ngModel)]="addressLine2" />
-    </div>
+        <div class="form-group">
+          <label>Address Line 2</label>
+          <input [name]="'address2-' + form.id" [(ngModel)]="form.addressLine2" (ngModelChange)="onFormChange(i)" />
+        </div>
 
-    <div class="form-group">
-      <label>Zipcode</label>
-      <input type="text" name="zipcode" [(ngModel)]="zipcode" />
-    </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>City *</label>
+            <input [name]="'city-' + form.id" [(ngModel)]="form.city" (ngModelChange)="onFormChange(i)" />
+          </div>
+          <div class="form-group">
+            <label>State *</label>
+            <input [name]="'state-' + form.id" [(ngModel)]="form.state" (ngModelChange)="onFormChange(i)" />
+          </div>
+          <div class="form-group">
+            <label>Zipcode *</label>
+            <input [name]="'zip-' + form.id" [(ngModel)]="form.zipcode" (ngModelChange)="onFormChange(i)" />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>City</label>
-      <input type="text" name="city" [(ngModel)]="city" />
-    </div>
+        <div class="button-row">
+          <button *ngIf="!form.isSaved" type="submit" class="primary-btn" [disabled]="form.isSubmitting">
+            {{ form.isSubmitting ? 'Saving...' : 'Save Info' }}
+          </button>
 
-    <div class="form-group">
-      <label>State</label>
-      <input type="text" name="state" [(ngModel)]="state" />
-    </div>
-  </form>
+          <ng-container *ngIf="form.isSaved && !form.isEditing">
+            <span class="status-chip">Saved</span>
+            <button type="button" class="primary-btn" (click)="enableEdit(i)">Edit</button>
+          </ng-container>
+
+          <ng-container *ngIf="form.isSaved && form.isEditing">
+            <button type="button" class="primary-btn" [disabled]="form.isSubmitting" (click)="updateForm(i)">
+              {{ form.isSubmitting ? 'Updating...' : 'Update Info' }}
+            </button>
+            <button type="button" class="secondary-btn" (click)="form.isEditing = false">Cancel</button>
+          </ng-container>
+        </div>
+
+        <div class="autosave-note">
+          <span *ngIf="form.isSubmitting">Saving changes...</span>
+          <span *ngIf="!form.isSubmitting">Auto-save enabled. Changes sync automatically.</span>
+        </div>
+
+        <div class="meta-row" *ngIf="form.savedAt || form.updatedAt">
+          <span *ngIf="form.savedAt">Saved: {{ form.savedAt }}</span>
+          <span *ngIf="form.updatedAt">Updated: {{ form.updatedAt }}</span>
+        </div>
+      </form>
+    </article>
+  </section>
 </div>
