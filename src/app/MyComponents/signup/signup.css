@@ -19,13 +19,13 @@
   overflow: hidden;
   background-image:
     linear-gradient(rgba(15, 23, 42, 0.62), rgba(15, 23, 42, 0.62)),
-    url('./Background.jpg');
+    url('../login/Background.jpg');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
 }
 
-.login-container {
+.signup-container {
   width: 100%;
   max-width: 440px;
   padding: 30px 28px;

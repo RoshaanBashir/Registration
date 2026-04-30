@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
@@ -15,14 +15,16 @@ type LoginResponse = {
 
 type LoginPayload = {
   username?: string;
-  email?: string;
-  password: string;
+  userName?: string;
+  Username?: string;
+  password?: string;
+  Password?: string;
 };
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
@@ -50,8 +52,8 @@ export class Login {
     const normalizedUser = this.username.trim();
     const payloadCandidates: LoginPayload[] = [
       { username: normalizedUser, password: this.password },
-      { email: normalizedUser, password: this.password },
-      { username: normalizedUser, email: normalizedUser, password: this.password }
+      { userName: normalizedUser, password: this.password },
+      { Username: normalizedUser, Password: this.password }
     ];
 
     this.tryLogin(payloadCandidates, 0);
@@ -116,13 +118,15 @@ export class Login {
               errorBlob.includes('connection refused') ||
               errorBlob.includes('actively refused') ||
               errorBlob.includes('proxy error') ||
-              errorBlob.includes('localhost:5230'))
+              errorBlob.includes(this.loginApiUrl.toLowerCase()))
           ) {
             this.errorMessage =
-              'Backend API is not running on http://localhost:5230. Start backend first, then retry login.';
+              `Backend API is not reachable at ${environment.apiBaseUrl}. Start backend first, then retry login.`;
+          } else if (error?.status === 500 && rawError) {
+            this.errorMessage = `Login failed (HTTP 500). ${rawError}`;
           } else if (error?.status === 500 && !backendMessage) {
             this.errorMessage =
-              'Server error during login (HTTP 500). Check backend logs for /api/auth/login.';
+              'Server error during login (HTTP 500). Check backend logs for /api/Auth/login.';
           }
 
           this.debugMessage = `POST ${this.loginApiUrl}`;
